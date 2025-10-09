@@ -1,16 +1,22 @@
-# УСЛОВИЕ:
-# Напишите асинхронную функцию fetch_status(url), которая делает GET-запрос к указанному URL.
-# Функция должна возвращать HTTP-статус ответа (например, 200).
-# Используйте библиотеку aiohttp и обязательно примените ключевое слово await
-# при вызове асинхронных операций (открытие сессии, выполнение запроса).
-# Напишите тест, который проверяет, что при запросе к https://httpbin.org/status/200
-# возвращается статус 200.
-
 import aiohttp
 import asyncio
+import pytest
+
 
 async def fetch_status(session, url):
-    pass
+    async with session.get(url) as response:
+        return response.status
+
 
 async def fetch_all(urls):
-    pass
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_status(session, url) for url in urls]
+        return await asyncio.gather(*tasks)
+
+
+@pytest.mark.asyncio
+async def test_fetch_status_200():
+    url = "https://httpbin.org/status/200"
+    async with aiohttp.ClientSession() as session:
+        status = await fetch_status(session, url)
+        assert status == 200
